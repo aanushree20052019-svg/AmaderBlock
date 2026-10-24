@@ -1,0 +1,44 @@
+name: Build AmaderBlock APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'AmaderBlock_Android_Starter.zip'
+      - '.github/workflows/android.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Android project ZIP
+        run: |
+          if [ -f AmaderBlock_Android_Starter.zip ]; then
+            unzip -o AmaderBlock_Android_Starter.zip -d .
+          fi
+          test -f settings.gradle.kts
+          test -f app/build.gradle.kts
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build debug APK
+        run: gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AmaderBlock-APK
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
